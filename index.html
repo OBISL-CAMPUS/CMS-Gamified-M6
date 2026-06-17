@@ -246,18 +246,19 @@
             height: 100%;
         }
 
-        /* Dynamic Visualizer Instruction Strip Overlay */
+        /* Dynamic Visualizer Instruction Strip Overlay - Highly Slimmed Layout */
         .canvas-instructions {
             position: absolute;
-            top: 10px;
+            top: 6px;
             left: 10px;
             right: 10px;
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(4px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 11px;
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 10px;
             color: var(--brand-emerald);
             font-weight: 600;
             text-align: center;
@@ -737,7 +738,7 @@
                 <span data-key="tab0">Value Levels</span>
             </button>
             <button class="nav-tab" id="tab-1" onclick="switchStep(1)">
-                <span data-key="tab1">PLC Sockets</span>
+                <span data-key="tab1">PLC Mapping</span>
             </button>
             <button class="nav-tab" id="tab-2" onclick="switchStep(2)">
                 <span data-key="tab2">Elasticity Balance</span>
@@ -787,18 +788,18 @@
             <div class="step-card" id="card-1">
                 <div class="card-header">
                     <span class="card-badge" data-key="badge1">Theory 2 of 4</span>
-                    <h3 class="card-title" data-key="title1">PLC Chronological Pipeline</h3>
+                    <h3 class="card-title" data-key="title1">PLC Scenario Curve Mapper</h3>
                     <p class="card-desc" data-key="desc1">
-                        Sectors change as markets age. Products migrate across sequential sockets: Introduction, Growth, Maturity, and Decline. Sequence the blocks chronologically above to construct the correct strategy timeline.
+                        Products migrate through unique lifecycle curves representing Sales and Profits over time. Drag each Sri Lankan business scenario card at the bottom to its matching active phase on the curve above!
                     </p>
                 </div>
                 <div class="expand-panel" id="panel-1">
                     <h4 class="panel-title" data-key="panelTitle1">Marketing Strategy Adapters</h4>
                     <p class="panel-text" data-key="panelText1">
-                        1. Introduction: High development cost, low volume, focus on Innovators.<br>
-                        2. Growth: Rapidly expanding sales volume, competitors enter, focus on Early Adopters.<br>
-                        3. Maturity: Pricing wars peak, market saturation occurs, focus on Early/Late Majority.<br>
-                        4. Decline: Commodity trap risk, margin erosion, requires deletion or continuous product rejuvenation.
+                        1. Introduction: High development cost, low sales (e.g., Organic Tea brand launching pilots).<br>
+                        2. Growth: Rapidly expanding sales, early adopters (e.g., Viral Bubble Tea chain opening new branches).<br>
+                        3. Maturity: Peak sales volume, price wars (e.g., Saturated Coconut Milk Powder category).<br>
+                        4. Decline: Falling sales and shrinking margins (e.g., Legacy Handlooms facing cheap imports).
                     </p>
                 </div>
                 <div class="action-container">
@@ -912,6 +913,35 @@
 
     <script>
         // ======================================================================================
+        // 0. HIGH-DPI ROBUST POLYFILLS (Ensures perfect cross-browser Canvas compatibility)
+        // ======================================================================================
+        if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+                if (typeof r === 'undefined') r = 0;
+                if (typeof r === 'number') r = [r, r, r, r];
+                if (r.length === 1) r = [r[0], r[0], r[0], r[0]];
+                if (r.length === 2) r = [r[0], r[1], r[0], r[1]];
+                if (r.length === 3) r = [r[0], r[1], r[2], r[1]];
+                
+                const rTl = r[0];
+                const rTr = r[1];
+                const rBr = r[2];
+                const rBl = r[3];
+
+                this.moveTo(x + rTl, y);
+                this.lineTo(x + w - rTr, y);
+                this.arcTo(x + w, y, x + w, y + rTr, rTr);
+                this.lineTo(x + w, y + h - rBr);
+                this.arcTo(x + w, y + h, x + w - rBr, y + h, rBr);
+                this.lineTo(x + rBl, y + h);
+                this.arcTo(x, y + h, x, y + h - rBl, rBl);
+                this.lineTo(x, y + rTl);
+                this.arcTo(x, y, x + rTl, y, rTl);
+                return this;
+            };
+        }
+
+        // ======================================================================================
         // 1. HIGH-PRECISION GLOBAL STATE DEFINITIONS (No TDZ Errors)
         // ======================================================================================
         let currentLanguage = 'en';
@@ -934,7 +964,7 @@
         let step1Nodes = [];
         let step1Zones = [];
 
-        // Step 2: PLC Sockets
+        // Step 2: PLC Sockets / Curve Mapper
         let step2Blocks = [];
         let step2Sockets = [];
 
@@ -957,11 +987,11 @@
         const translationDict = {
             en: {
                 tab0: "Value Levels",
-                tab1: "PLC Sockets",
+                tab1: "PLC Mapping",
                 tab2: "Elasticity Balance",
                 tab3: "Tactical Pricing",
                 prompt0: "Drag each block to its correct layer (Core, Actual, Augmented)!",
-                prompt1: "Sequence stages in order: Introduction ➜ Growth ➜ Maturity ➜ Decline!",
+                prompt1: "Drag each local business scenario to its correct PLC phase!",
                 prompt2: "Adjust Sliders: Calibrate Price vs Quantity to hit LKR 1.5M revenue!",
                 prompt3: "Balance price to keep Consumer Intent & Profit Margin both above 45%!",
                 badge0: "Theory 1 of 4",
@@ -969,11 +999,11 @@
                 badge2: "Theory 3 of 4",
                 badge3: "Theory 4 of 4",
                 title0: "Concentric Value Integration",
-                title1: "PLC Chronological Pipeline",
+                title1: "PLC Scenario Curve Mapper",
                 title2: "Elasticity & Price Calibration",
                 title3: "Tactical Pricing & Bundling",
                 desc0: "Deconstruct offerings using Michael Ranuka Gamage's three-tier model. Core satisfies primary needs; Actual encompasses design/packaging; Augmented wraps delivery and warranties. Drag and drop features above to align correctly!",
-                desc1: "Sectors change as markets age. Products migrate across sequential sockets: Introduction, Growth, Maturity, and Decline. Sequence the blocks chronologically above to construct the correct strategy timeline.",
+                desc1: "Products migrate through unique lifecycle curves representing Sales and Profits over time. Drag each Sri Lankan business scenario card at the bottom to its matching active phase on the curve above!",
                 desc2: "Understand Price Elasticity of Demand (Ed = %ΔQ / %ΔP). Pivot price controls above using the sliders. If demand is inelastic (|Ed| < 1), price increases boost revenue. If elastic (|Ed| > 1), price cuts capture volume. Tap active nodes and slide to hit target revenue!",
                 desc3: "Construct a 'Ceylon Tea Premium Gift Pack' Mixed Bundle above. Individually, the components cost LKR 3,000. Slide the bundle price below to trigger Left-Digit Fractional pricing. Balance attractive Consumer Purchase Intent and business Profit Margins above 45%!",
                 panelTitle0: "Theoretical Framework",
@@ -981,7 +1011,7 @@
                 panelTitle2: "Inelastic Pricing Formula",
                 panelTitle3: "Strategy Definitions",
                 panelText0: "The Total Product Concept mandates that products are more than raw tangible physical items. Marketers can command significant price premiums by layering non-physical augmented structures, shifting brand elasticity from highly elastic to inelastic.",
-                panelText1: "1. Introduction: High development cost, low volume, focus on Innovators.<br>2. Growth: Rapidly expanding sales volume, competitors enter, focus on Early Adopters.<br>3. Maturity: Pricing wars peak, market saturation occurs, focus on Early/Late Majority.<br>4. Decline: Commodity trap risk, margin erosion, requires deletion or continuous product rejuvenation.",
+                panelText1: "1. Introduction: High development cost, low sales (e.g., Organic Tea brand launching pilots).<br>2. Growth: Rapidly expanding sales, early adopters (e.g., Viral Bubble Tea chain opening new branches).<br>3. Maturity: Peak sales volume, price wars (e.g., Saturated Coconut Milk Powder category).<br>4. Decline: Falling sales and shrinking margins (e.g., Legacy Handlooms facing cheap imports).",
                 panelText2: "Total Revenue (TR) = Price (P) x Quantity (Q). When demand is highly inelastic, any percentage increase in price is much larger than the corresponding percentage decline in volume, driving up total cash flows.",
                 panelText3: "Mixed Bundling offers components individually or combined, capturing various consumer surplus groups. Integrating Left-Digit fractional bias (pricing ending in .99 / 99) decreases cognitive barrier friction, boosting Purchase Intent.",
                 btnStart: "▶ Start Activity",
@@ -1011,11 +1041,11 @@
             },
             si: {
                 tab0: "නිෂ්පාදන මට්ටම්",
-                tab1: "PLC කාලරාමුව",
+                tab1: "PLC වක්‍රය",
                 tab2: "මිල නම්‍යතාවය",
                 tab3: "උපායමාර්ගික මිල",
                 prompt0: "එක් එක් කොටස නිවැරදි ස්ථරයට (මූලික, සැබෑ, වර්ධිත) ඇද දමන්න!",
-                prompt1: "නිවැරදි අනුපිළිවෙල සකසන්න: හඳුන්වාදීම ➜ වර්ධනය ➜ පරිණතභාවය ➜ පරිහානිය!",
+                prompt1: "එක් එක් දේශීය ව්‍යාපාරික අවස්ථාව PLC වක්‍රයේ නිවැරදි ස්ථානයට ඇද තබන්න!",
                 prompt2: "රු. මිලියන 1.5ක ආදායම ලබා ගැනීමට මිල සහ ප්‍රමාණය සලකුණු කරන්න!",
                 prompt3: "මිශ්‍ර පැකේජයේ මිල සකසා ලාභය සහ පාරිභෝගික කැමැත්ත 45% ට වඩා ඉහළින් තබාගන්න!",
                 badge0: "න්‍යාය 1 (සමස්තයෙන් 4)",
@@ -1023,11 +1053,11 @@
                 badge2: "න්‍යාය 3 (සමස්තයෙන් 4)",
                 badge3: "න්‍යාය 4 (සමස්තයෙන් 4)",
                 title0: "සමකේන්ද්‍රික නිෂ්පාදන මට්ටම්",
-                title1: "නිෂ්පාදන ආයු කාල චක්‍රය (PLC)",
+                title1: "PLC ආයු කාල වක්‍රය",
                 title2: "මිල සහ ඉල්ලුමේ නම්‍යතාවය",
                 title3: "මිලකරණ උපායමාර්ග සහ පැකේජකරණය",
                 desc0: "මයිකල් රනුක ගමගේ මහතාගේ මට්ටම් තුනේ ආකෘතිය භාවිත කරන්න. මූලික ප්‍රතිලාභය; සැලසුම්/ඇසුරුම් අඩංගු සැබෑ නිෂ්පාදනය; සහ අලෙවියෙන් පසු සේවා සපයන වර්ධිත නිෂ්පාදනය හඳුනාගන්න.",
-                desc1: "වෙළඳපල පරිණත වන විට වෙනස්වීම් සිදුවේ. නිෂ්පාදන අනුක්‍රමිකව: හඳුන්වාදීම, වර්ධනය, පරිණතභාවය, සහ පරිහානිය ඔස්සේ ගමන් කරයි. නිවැරදි අනුපිළිවෙල ඉහතින් සකසන්න.",
+                desc1: "නිෂ්පාදන ඒවායේ ආයු කාලය අනුව විවිධ වෙළෙඳපොළ අවධීන් පසුකරයි. පහත දැක්වෙන දේශීය ව්‍යාපාරික අවස්ථා කාඩ්පත් ඉහත වක්‍රයේ නිවැරදි අවධීන්ට ඇද තබන්න!",
                 desc2: "ඉල්ලුමේ මිල නම්‍යතාවය (Ed = %ΔQ / %ΔP) වටහාගන්න. මිල වෙනස් කරන විට ඉල්ලුම අනම්‍ය නම් (|Ed| < 1) මිල වැඩි කර ආදායම වැඩි කළ හැක. නම්‍යශීලී නම් (|Ed| > 1) මිල අඩු කිරීමෙන් ආදායම වැඩිකල හැක.",
                 desc3: "ඉහතින් 'සෙලෝන් ටී ප්‍රිමියම් තෑගි පැකේජය' සාදන්න. මෙහි අන්තර්ගතයන් වෙන වෙනම මිලදී ගන්නේ නම් රු. 3,000 කි. පැකේජයේ මිල වෙනස් කර වම්-ඉලක්කම් වට්ටම් ක්‍රමය (Left-Digit Pricing) යොදාගනිමින් ලාභය සහ පාරිභෝගික කැමැත්ත 45% ට වඩා ඉහළින් තබාගන්න!",
                 panelTitle0: "න්‍යායාත්මක පසුබිම",
@@ -1035,7 +1065,7 @@
                 panelTitle2: "මිල අනම්‍යතා සූත්‍රය",
                 panelTitle3: "මිලකරණ සහ පැකේජකරණ න්‍යාය",
                 panelText0: "සමස්ත නිෂ්පාදන සංකල්පයට අනුව භෞතික භාණ්ඩයට අමතරව වර්ධිත සේවාවන් එක් කිරීම මගින් මිල නම්‍යතාවය වෙනස් කර වැඩි මිලක් සහ වාරික ලාභ ලබාගත හැක.",
-                panelText1: "1. හඳුන්වාදීමේ අවධිය: අධික පිරිවැය, නව හඳුන්වාදෙන්නන් ඉලක්ක කරයි. <br>2. වර්ධන අවධිය: විකුණුම් වැඩිවේ, තරඟකරුවන් ඇතුල් වේ. <br>3. පරිණතභාවය: මිල යුද්ධ ඇතිවේ. <br>4. පරිහානිය: භාණ්ඩමය උගුලට වැටේ.",
+                panelText1: "1. හඳුන්වාදීම: ඉහළ පිරිවැය, අවම විකුණුම් (උදා: කාබනික ඔසු පැන් හඳුන්වාදීම).<br>2. වර්ධනය: වේගවත් විකුණුම් වර්ධනය, නව පාරිභෝගිකයින් (උදා: ජනප්‍රිය බබල් ටී ජාලය).<br>3. පරිණත: උපරිම විකුණුම්, මිල යුද්ධ (උදා: පොල් කිරි පිටි වෙළෙඳපොළ).<br>4. පරිහානිය: පහත වැටෙන විකුණුම් සහ පිරිහෙන ලාභ (උදා: සාම්ප්‍රදායික අත්යන්ත්‍ර රෙදිපිළි).",
                 panelText2: "මුළු ආදායම (TR) = මිල (P) x ප්‍රමාණය (Q). ඉල්ලුම අනම්‍ය වන විට, මිලෙහි සිදුවන සුළු වැඩිවීමකට වඩා විකුණුම් ප්‍රමාණයේ සිදුවන පහත වැටීම ඉතා අවම වේ.",
                 panelText3: "මිශ්‍ර පැකේජකරණය (Mixed Bundling) මඟින් පාරිභෝගික අතිරික්තය උපරිම කරන අතර, .99 කින් අවසන් වන මනෝවිද්‍යාත්මක මිලකරණය මඟින් ගැනුම්කරුගේ මිලෙහි බර අඩු කර පෙන්වයි.",
                 btnStart: "▶ ක්‍රියාව අරඹන්න",
@@ -1209,60 +1239,81 @@
 
             if (activeStep === 0) {
                 const cx = w / 2;
-                const cy = h / 2 + 10;
-                const minDim = Math.min(w, h);
+                const cy = h / 2 + 20; // Shift down slightly from top banner
+                const minDim = Math.min(w, h - 30); // Prevent circle top boundary overflows
 
+                // Adjusted radii multipliers to shrink circles perfectly away from instructions banner
                 step1Zones = [
-                    { name: 'Core Benefit', r: minDim * 0.18, color: '#10b981', key: 'Core' },
-                    { name: 'Actual Product', r: minDim * 0.32, color: '#3b82f6', key: 'Actual' },
-                    { name: 'Augmented Product', r: minDim * 0.45, color: '#8b5cf6', key: 'Augmented' }
+                    { name: 'Core Benefit', r: minDim * 0.14, color: '#10b981', key: 'Core' },
+                    { name: 'Actual Product', r: minDim * 0.25, color: '#3b82f6', key: 'Actual' },
+                    { name: 'Augmented Product', r: minDim * 0.36, color: '#8b5cf6', key: 'Augmented' }
                 ];
 
-                const nodeW = Math.max(105, minDim * 0.32);
-                const nodeH = Math.max(34, minDim * 0.11);
+                const nodeW = Math.max(90, w * 0.26); // Adapt to display container width
+                const nodeH = 30;
 
+                // Relocated default coordinates to the extreme corners of the viewport
                 step1Nodes = [
-                    { id: 1, label: 'Thirst Relief', labelSi: 'පිපාසය නිවීම', x: 70, y: 55, w: nodeW, h: nodeH, correctZone: 'Core', color: '#10b981', docked: false },
-                    { id: 2, label: 'Wooden Box', labelSi: 'ලී ඇසුරුම', x: w - 80, y: 65, w: nodeW, h: nodeH, correctZone: 'Actual', color: '#3b82f6', docked: false },
-                    { id: 3, label: 'Warranty Support', labelSi: 'වගකීම් සහතිකය', x: 80, y: h - 65, w: nodeW, h: nodeH, correctZone: 'Augmented', color: '#8b5cf6', docked: false },
-                    { id: 4, label: 'Brand Logo Design', labelSi: 'සන්නාම ලාංඡනය', x: w - 80, y: h - 65, w: nodeW, h: nodeH, correctZone: 'Actual', color: '#3b82f6', docked: false }
+                    { id: 1, label: 'Thirst Relief', labelSi: 'පිපාසය නිවීම', x: nodeW / 2 + 10, y: 58, w: nodeW, h: nodeH, correctZone: 'Core', color: '#10b981', docked: false },
+                    { id: 2, label: 'Wooden Box', labelSi: 'ලී ඇසුරුම', x: w - nodeW / 2 - 10, y: 58, w: nodeW, h: nodeH, correctZone: 'Actual', color: '#3b82f6', docked: false },
+                    { id: 3, label: 'Warranty Support', labelSi: 'වගකීම් සහතිකය', x: nodeW / 2 + 10, y: h - 35, w: nodeW, h: nodeH, correctZone: 'Augmented', color: '#8b5cf6', docked: false },
+                    { id: 4, label: 'Brand Logo Design', labelSi: 'සන්නාම ලාංඡනය', x: w - nodeW / 2 - 10, y: h - 35, w: nodeW, h: nodeH, correctZone: 'Actual', color: '#3b82f6', docked: false }
                 ];
             }
             else if (activeStep === 1) {
-                const trackY = h / 2 - 15;
-                const blockWidth = w / 5;
-                const blockHeight = 40;
+                const startX = w * 0.12;
+                const graphWidth = w * 0.76;
+                const baseY = h - 65;
+                const maxSalesHeight = (h - 90) * 0.65;
 
+                // Helper curve formula matched perfectly with draw function
+                function getSalesY(pct) {
+                    return baseY - maxSalesHeight * Math.exp(-Math.pow((pct - 0.65) / 0.28, 2));
+                }
+
+                // Definition of target zones representing 4 PLC phases
                 step2Sockets = [
-                    { id: 0, x: 0, y: trackY, w: blockWidth, h: blockHeight, expectedName: 'Intro', labelEn: 'Intro', labelSi: 'හඳුන්වාදීම' },
-                    { id: 1, x: 0, y: trackY, w: blockWidth, h: blockHeight, expectedName: 'Growth', labelEn: 'Growth', labelSi: 'වර්ධනය' },
-                    { id: 2, x: 0, y: trackY, w: blockWidth, h: blockHeight, expectedName: 'Maturity', labelEn: 'Maturity', labelSi: 'පරිණත' },
-                    { id: 3, x: 0, y: trackY, w: blockWidth, h: blockHeight, expectedName: 'Decline', labelEn: 'Decline', labelSi: 'පරිහානිය' }
+                    { id: 0, pct: 0.18, expectedName: 'Intro', labelEn: 'Intro', labelSi: 'හඳුන්වාදීම', color: '#10b981' },
+                    { id: 1, pct: 0.42, expectedName: 'Growth', labelEn: 'Growth', labelSi: 'වර්ධනය', color: '#3b82f6' },
+                    { id: 2, pct: 0.68, expectedName: 'Maturity', labelEn: 'Maturity', labelSi: 'පරිණත', color: '#8b5cf6' },
+                    { id: 3, pct: 0.88, expectedName: 'Decline', labelEn: 'Decline', labelSi: 'පරිහානිය', color: '#ef4444' }
                 ];
 
-                const socketGap = (w - (blockWidth * 4)) / 5;
-                step2Sockets.forEach((s, idx) => {
-                    s.x = socketGap + idx * (blockWidth + socketGap);
+                step2Sockets.forEach(s => {
+                    s.x = startX + s.pct * graphWidth;
+                    s.y = getSalesY(s.pct);
+                    s.r = 16; // Hit test radius
                 });
 
-                const labels = [
-                    { en: 'Growth', si: 'වර්ධනය', key: 'Growth' },
-                    { en: 'Intro', si: 'හඳුන්වාදීම', key: 'Intro' },
-                    { en: 'Decline', si: 'පරිහානිය', key: 'Decline' },
-                    { en: 'Maturity', si: 'පරිණත', key: 'Maturity' }
+                // Contextual Sri Lankan Business Scenarios
+                const scenarios = [
+                    { key: 'Intro', labelEn: 'Organic Tea', labelSi: 'කාබනික ඔසු', descEn: 'Pilot Launch batch', descSi: 'මුල්ම ඔසු පැන්' },
+                    { key: 'Growth', labelEn: 'Bubble Tea', labelSi: 'බබල් ටී ජාලය', descEn: '5 Viral Outlets open', descSi: 'වේගවත් වර්ධනය' },
+                    { key: 'Maturity', labelEn: 'Coconut Powder', labelSi: 'පොල් කිරි පිටි', descEn: '12 Competitor Wars', descSi: 'තද මිල තරඟය' },
+                    { key: 'Decline', labelEn: 'Legacy Handloom', labelSi: 'අත්යන්ත්‍ර රෙදි', descEn: 'Cheap Import Loss', descSi: 'ආනයන බලපෑම' }
                 ];
 
-                step2Blocks = labels.map((l, idx) => ({
-                    id: idx,
-                    labelEn: l.en,
-                    labelSi: l.si,
-                    key: l.key,
-                    x: socketGap + idx * (blockWidth + socketGap),
-                    y: h - 55,
-                    w: blockWidth,
-                    h: 36,
-                    color: '#3b82f6'
-                }));
+                const blockWidth = Math.max(85, w * 0.22);
+                const blockGap = (w - (blockWidth * 4)) / 5;
+                
+                // Shuffle initial cards horizontally at the bottom
+                const startSequence = [2, 0, 3, 1];
+                step2Blocks = scenarios.map((sc, idx) => {
+                    const sIdx = startSequence[idx];
+                    return {
+                        id: idx,
+                        key: sc.key,
+                        labelEn: sc.labelEn,
+                        labelSi: sc.labelSi,
+                        descEn: sc.descEn,
+                        descSi: sc.descSi,
+                        x: blockGap + sIdx * (blockWidth + blockGap),
+                        y: h - 42,
+                        w: blockWidth,
+                        h: 32,
+                        docked: false
+                    };
+                });
             }
             else if (activeStep === 2) {
                 const sliderY = h - 30;
@@ -1348,7 +1399,8 @@
         // ======================================================================================
         function drawStep1(w, h) {
             const cx = w / 2;
-            const cy = h / 2 + 10;
+            const cy = h / 2 + 20; // Re-align Center coordinates perfectly matching initStepData
+            const minDim = Math.min(w, h - 30);
 
             for (let i = step1Zones.length - 1; i >= 0; i--) {
                 const zone = step1Zones[i];
@@ -1362,15 +1414,15 @@
                 ctx.stroke();
                 ctx.setLineDash([]);
 
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-                ctx.font = '8px ' + (currentLanguage === 'en' ? 'Inter, sans-serif' : '"Abhaya Libre", serif');
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+                ctx.font = 'bold 8.5px ' + (currentLanguage === 'en' ? 'Inter, sans-serif' : '"Abhaya Libre", serif');
                 ctx.textAlign = 'center';
                 
                 const labelText = (zone.key === 'Core') ? translationDict[currentLanguage]['lblCore'] :
                                   (zone.key === 'Actual') ? translationDict[currentLanguage]['lblActual'] :
                                   translationDict[currentLanguage]['lblAugmented'];
                                   
-                ctx.fillText(labelText, cx, cy - zone.r + 12);
+                ctx.fillText(labelText, cx, cy - zone.r + 10);
             }
 
             step1Nodes.forEach(node => {
@@ -1389,7 +1441,7 @@
                 ctx.stroke();
 
                 ctx.fillStyle = '#020617';
-                ctx.font = 'bold 9.5px ' + (currentLanguage === 'en' ? 'Inter, sans-serif' : '"Abhaya Libre", serif');
+                ctx.font = 'bold 9px ' + (currentLanguage === 'en' ? 'Inter, sans-serif' : '"Abhaya Libre", serif');
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText(currentLanguage === 'en' ? node.label : node.labelSi, node.x, node.y);
@@ -1424,100 +1476,160 @@
         }
 
         // ======================================================================================
-        // 8. STEP 2 DRAW: CHRONOLOGICAL LIFECYCLE SOCKETS
+        // 8. STEP 2 DRAW: CHRONOLOGICAL LIFECYCLE SCENARIO MAPPER (New Upgraded Game)
         // ======================================================================================
         function drawStep2(w, h) {
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-            ctx.lineWidth = 4;
+            const startX = w * 0.12;
+            const graphWidth = w * 0.76;
+            const baseY = h - 65;
+            const maxSalesHeight = (h - 90) * 0.65;
+            const maxProfitHeight = (h - 90) * 0.45;
+            const investmentDip = (h - 90) * 0.15;
+
+            // Gaussian Curve formulas modeling Sales vs Profit correctly
+            function getSalesY(pct) {
+                return baseY - maxSalesHeight * Math.exp(-Math.pow((pct - 0.65) / 0.28, 2));
+            }
+
+            function getProfitY(pct) {
+                return baseY - maxProfitHeight * Math.exp(-Math.pow((pct - 0.45) / 0.22, 2)) + investmentDip * Math.exp(-Math.pow(pct / 0.15, 2));
+            }
+
+            // Draw faint vertical dotted separators marking phase boundaries
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([2, 4]);
+            [0.28, 0.56, 0.82].forEach(p => {
+                ctx.beginPath();
+                ctx.moveTo(startX + p * graphWidth, baseY + 10);
+                ctx.lineTo(startX + p * graphWidth, baseY - maxSalesHeight - 10);
+                ctx.stroke();
+            });
+            ctx.setLineDash([]);
+
+            // Draw main Graph Axes
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.lineWidth = 1.5;
             ctx.beginPath();
-            ctx.moveTo(35, h / 2 + 5);
-            ctx.lineTo(w - 35, h / 2 + 5);
+            ctx.moveTo(startX, baseY - maxSalesHeight - 15);
+            ctx.lineTo(startX, baseY + 10);
+            ctx.lineTo(startX + graphWidth + 15, baseY + 10);
             ctx.stroke();
 
-            step2Sockets.forEach(s => {
-                let dockedBlock = null;
-                step2Blocks.forEach(b => {
-                    const bx = b.x + b.w / 2;
-                    const by = b.y + b.h / 2;
-                    if (bx > s.x && bx < s.x + s.w && by > s.y && by < s.y + s.h) {
-                        dockedBlock = b;
-                    }
-                });
+            // Draw Sales Curve (Solid Emerald Line)
+            ctx.strokeStyle = 'rgba(16, 185, 129, 0.85)';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (let xPct = 0; xPct <= 1.0; xPct += 0.02) {
+                const cx = startX + xPct * graphWidth;
+                const cy = getSalesY(xPct);
+                if (xPct === 0) ctx.moveTo(cx, cy);
+                else ctx.lineTo(cx, cy);
+            }
+            ctx.stroke();
 
-                ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
-                
-                if (dockedBlock) {
-                    if (dockedBlock.key === s.expectedName) {
-                        ctx.strokeStyle = 'var(--brand-emerald)';
-                        ctx.lineWidth = 2;
-                    } else {
-                        ctx.strokeStyle = 'var(--danger-red)';
-                        ctx.lineWidth = 1.5;
-                    }
-                } else {
-                    ctx.strokeStyle = '#475569';
-                    ctx.lineWidth = 1;
-                }
+            // Label Sales Curve
+            ctx.fillStyle = '#10b981';
+            ctx.font = 'bold 8px Inter, sans-serif';
+            ctx.fillText(currentLanguage === 'en' ? 'Sales' : 'විකුණුම්', startX + graphWidth * 0.73, getSalesY(0.73) - 12);
+
+            // Draw Profit Curve (Dashed Blue Line, dipping below baseline at launch)
+            ctx.strokeStyle = 'rgba(59, 130, 246, 0.8)';
+            ctx.lineWidth = 2.5;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            for (let xPct = 0; xPct <= 1.0; xPct += 0.02) {
+                const cx = startX + xPct * graphWidth;
+                const cy = getProfitY(xPct);
+                if (xPct === 0) ctx.moveTo(cx, cy);
+                else ctx.lineTo(cx, cy);
+            }
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Label Profit Curve
+            ctx.fillStyle = '#3b82f6';
+            ctx.font = 'bold 8px Inter, sans-serif';
+            ctx.fillText(currentLanguage === 'en' ? 'Profit' : 'ලාභය', startX + graphWidth * 0.35, getProfitY(0.35) - 12);
+
+            // Draw baseline explicitly
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(startX, baseY);
+            ctx.lineTo(startX + graphWidth, baseY);
+            ctx.stroke();
+
+            // Draw axis title tags
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.font = '7.5px ' + (currentLanguage === 'en' ? 'Inter, sans-serif' : '"Abhaya Libre", serif');
+            ctx.textAlign = 'right';
+            ctx.fillText(currentLanguage === 'en' ? 'Time ➜' : 'කාලය ➜', startX + graphWidth + 15, baseY + 20);
+
+            // Render matching sockets
+            step2Sockets.forEach(s => {
+                let dockedBlock = step2Blocks.find(b => b.docked && b.key === s.expectedName);
 
                 ctx.beginPath();
-                ctx.roundRect(s.x, s.y, s.w, s.h, 8);
+                ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
                 ctx.fill();
+                
+                ctx.strokeStyle = dockedBlock ? 'var(--brand-emerald)' : s.color;
+                ctx.lineWidth = 1.5;
+                ctx.setLineDash([3, 3]);
                 ctx.stroke();
+                ctx.setLineDash([]);
 
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
-                ctx.font = '9px ' + (currentLanguage === 'en' ? 'Inter, sans-serif' : '"Abhaya Libre", serif');
+                // Draw solid pointer core
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, 3.5, 0, Math.PI * 2);
+                ctx.fillStyle = s.color;
+                ctx.fill();
+
+                // Draw stage title tags
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.font = 'bold 8.5px ' + (currentLanguage === 'en' ? 'Inter, sans-serif' : '"Abhaya Libre", serif');
                 ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(currentLanguage === 'en' ? s.labelEn : s.labelSi, s.x + s.w / 2, s.y + s.h / 2);
+                ctx.fillText(currentLanguage === 'en' ? s.labelEn : s.labelSi, s.x, s.y + s.r + 10);
             });
 
+            // Draw Scenario cards
             step2Blocks.forEach(b => {
-                let isDockedCorrectly = false;
-                step2Sockets.forEach(s => {
-                    if (b.key === s.expectedName) {
-                        const bx = b.x + b.w / 2;
-                        const by = b.y + b.h / 2;
-                        if (bx > s.x && bx < s.x + s.w && by > s.y && by < s.y + s.h) {
-                            isDockedCorrectly = true;
-                        }
-                    }
-                });
-
-                ctx.fillStyle = isDockedCorrectly ? 'var(--brand-emerald)' : '#3b82f6';
+                ctx.save();
                 ctx.beginPath();
                 ctx.roundRect(b.x, b.y, b.w, b.h, 6);
                 
-                ctx.shadowColor = isDockedCorrectly ? 'var(--brand-emerald-glow)' : 'rgba(59, 130, 246, 0.4)';
-                ctx.shadowBlur = 8;
+                const isCorrect = b.docked;
+                ctx.fillStyle = isCorrect ? 'var(--brand-emerald)' : 'rgba(30, 41, 59, 0.95)';
+                ctx.shadowColor = isCorrect ? 'var(--brand-emerald-glow)' : 'rgba(0,0,0,0.4)';
+                ctx.shadowBlur = isCorrect ? 8 : 4;
                 ctx.fill();
                 ctx.shadowBlur = 0;
 
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 1.5;
+                ctx.strokeStyle = isCorrect ? 'var(--brand-emerald)' : 'rgba(255,255,255,0.15)';
+                ctx.lineWidth = 1;
                 ctx.stroke();
 
-                ctx.fillStyle = '#020617';
-                ctx.font = 'bold 9.5px ' + (currentLanguage === 'en' ? 'Inter, sans-serif' : '"Abhaya Libre", serif');
+                // Card Labels (Title & Subtitle)
+                ctx.fillStyle = isCorrect ? '#020617' : '#ffffff';
+                ctx.font = 'bold 8.5px ' + (currentLanguage === 'en' ? 'Inter, sans-serif' : '"Abhaya Libre", serif');
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(currentLanguage === 'en' ? b.labelEn : b.labelSi, b.x + b.w / 2, b.y + b.h / 2);
+                
+                const cardTitle = currentLanguage === 'en' ? b.labelEn : b.labelSi;
+                const cardDesc = currentLanguage === 'en' ? b.descEn : b.descSi;
+
+                ctx.fillText(cardTitle, b.x + b.w / 2, b.y + b.h / 2 - 5);
+                
+                ctx.fillStyle = isCorrect ? 'rgba(2,6,23,0.7)' : 'var(--text-muted)';
+                ctx.font = '7px ' + (currentLanguage === 'en' ? 'Inter, sans-serif' : '"Abhaya Libre", serif');
+                ctx.fillText(cardDesc, b.x + b.w / 2, b.y + b.h / 2 + 6);
+                ctx.restore();
             });
 
-            let success = true;
-            step2Sockets.forEach(socket => {
-                let socketFilledCorrectly = false;
-                step2Blocks.forEach(block => {
-                    const bx = block.x + block.w / 2;
-                    const by = block.y + block.h / 2;
-
-                    if (bx > socket.x && bx < socket.x + socket.w && by > socket.y && by < socket.y + socket.h) {
-                        if (block.key === socket.expectedName) {
-                            socketFilledCorrectly = true;
-                        }
-                    }
-                });
-                if (!socketFilledCorrectly) success = false;
-            });
+            // Success Evaluation
+            let success = step2Blocks.every(b => b.docked);
 
             if (success && !stepsCompleted[1]) {
                 stepsCompleted[1] = true;
@@ -1838,8 +1950,20 @@
         // ======================================================================================
         function getDpiCoordinates(e) {
             const rect = canvas.getBoundingClientRect();
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            let clientX = 0;
+            let clientY = 0;
+            
+            if (e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else if (e.changedTouches && e.changedTouches.length > 0) {
+                clientX = e.changedTouches[0].clientX;
+                clientY = e.changedTouches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+
             return {
                 x: (clientX - rect.left) * (canvas.width / (window.devicePixelRatio || 1) / rect.width),
                 y: (clientY - rect.top) * (canvas.height / (window.devicePixelRatio || 1) / rect.height)
@@ -1875,6 +1999,7 @@
                     if (pointer.x > block.x && pointer.x < block.x + block.w &&
                         pointer.y > block.y && pointer.y < block.y + block.h) {
                         draggedElement = block;
+                        block.docked = false; // Undock when user picks it up
                         dragOffset.x = pointer.x - block.x;
                         dragOffset.y = pointer.y - block.y;
                     }
@@ -1999,38 +2124,30 @@
                 const bx = block.x + block.w / 2;
                 const by = block.y + block.h / 2;
 
-                let nearestSocket = null;
-                let minDist = 40; 
+                let snappedSocket = null;
+                let minDist = 38; // Snapping boundary radius
 
                 step2Sockets.forEach(s => {
-                    const sx = s.x + s.w / 2;
-                    const sy = s.y + s.h / 2;
-                    const dist = Math.hypot(bx - sx, by - sy);
+                    const dist = Math.hypot(bx - s.x, by - s.y);
                     if (dist < minDist) {
                         minDist = dist;
-                        nearestSocket = s;
+                        snappedSocket = s;
                     }
                 });
 
-                if (nearestSocket) {
-                    let occupied = false;
-                    step2Blocks.forEach(other => {
-                        if (other !== block) {
-                            const obx = other.x + other.w / 2;
-                            const oby = other.y + other.h / 2;
-                            const sx = nearestSocket.x + nearestSocket.w / 2;
-                            const sy = nearestSocket.y + nearestSocket.h / 2;
-                            if (Math.hypot(obx - sx, oby - sy) < 5) {
-                                occupied = true;
-                            }
-                        }
-                    });
-
+                // Match validation: Verify scenario key matches socket's expected phase key
+                if (snappedSocket && snappedSocket.expectedName === block.key) {
+                    let occupied = step2Blocks.some(other => other !== block && other.docked && other.key === snappedSocket.expectedName);
                     if (!occupied) {
-                        block.x = nearestSocket.x + (nearestSocket.w - block.w) / 2;
-                        block.y = nearestSocket.y + (nearestSocket.h - block.h) / 2;
-                        triggerVictoryCascades(nearestSocket.x + nearestSocket.w / 2, nearestSocket.y + nearestSocket.h / 2);
+                        block.docked = true;
+                        block.x = snappedSocket.x - block.w / 2;
+                        block.y = snappedSocket.y - block.h / 2;
+                        triggerVictoryCascades(snappedSocket.x, snappedSocket.y);
+                    } else {
+                        block.docked = false;
                     }
+                } else {
+                    block.docked = false;
                 }
             }
 
